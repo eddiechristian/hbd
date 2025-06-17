@@ -181,17 +181,7 @@ async fn start_http_server(mut syslog_writer: Option<SyslogWriter>, config: &con
     log_both!(syslog_writer, "info", "Available endpoints:");
     log_both!(syslog_writer, "info", "  GET  /health           - Health check");
     log_both!(syslog_writer, "info", "  GET  /api/db-info      - Database information");
-    log_both!(syslog_writer, "info", "  GET  /api/users        - List all users (supports ?limit=N&offset=N)");
-    log_both!(syslog_writer, "info", "  POST /api/users        - Create new user");
-    log_both!(syslog_writer, "info", "  GET  /api/users/:id    - Get user by ID");
     log_both!(syslog_writer, "info", "  GET  /hbd              - Device heartbeat endpoint (supports ?ID=123&MAC=000&IP=192.168.1.1&ts=1749862684)");
-    log_both!(syslog_writer, "info", "  GET  /demo/twisted-style - Demo of Twisted-style async callbacks");
-    log_both!(syslog_writer, "info", "  GET  /api/ignite/info  - Apache Ignite cluster information");
-    log_both!(syslog_writer, "info", "  GET  /api/ignite/sql   - Execute SQL on Ignite (supports ?sql=query)");
-    log_both!(syslog_writer, "info", "  GET  /api/users/:id/hybrid - Hybrid MySQL+Ignite user lookup");
-    log_both!(syslog_writer, "info", "  GET  /demo/performance - Real-time MySQL vs Ignite performance comparison");
-    log_both!(syslog_writer, "info", "  GET  /api/benchmark/info - Benchmark configuration info");
-    log_both!(syslog_writer, "info", "  GET  /api/benchmark/run - High-load benchmark (200+ RPS simulation)");
     log_both!(syslog_writer, "info", "🔥 Press Ctrl+C to stop the server");
     
     // Start the server

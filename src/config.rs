@@ -178,7 +178,7 @@ impl Default for LoggingConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            name: "mysql_connection_demo".to_string(),
+            name: "hbd".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
             environment: "development".to_string(),
             debug: false,
@@ -209,12 +209,16 @@ impl Config {
         let mut config = Self::default();
         
         // Load from config file if it exists
-
         match Self::load_from_file("config.toml") {
-            Ok(file_config) => config = file_config,
-            Err(e) =>{
-              print!("\nERROR: loading config.toml err{}\n",e);
-              std::process::exit(1);
+            Ok(file_config) => {
+                println!("✅ Configuration loaded from config.toml");
+                config = file_config;
+                config.app.version = env!("CARGO_PKG_VERSION").to_string();
+            },
+            Err(e) => {
+                println!("⚠️  Warning: Could not load config.toml: {}", e);
+                println!("📝 Using default configuration. You can create a config.toml file to customize settings.");
+                // Continue with default config instead of exiting
             }
         }
         
