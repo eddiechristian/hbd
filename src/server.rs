@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{HeaderMap,StatusCode},
     response::Json,
     routing::{get, post},
     Router,
@@ -126,7 +126,11 @@ pub async fn health() -> Result<Json<serde_json::Value>, StatusCode> {
 }
 
 /// Get database information
-pub async fn get_db_info(State(state): State<AppState>) -> Result<Json<serde_json::Value>, StatusCode> {
+pub async fn get_db_info(
+    headers: HeaderMap, 
+    State(state): State<AppState>
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    log::info!("eddie: headers{:?}", headers);
     match state.get_connection() {
         Ok(mut conn) => {
             let version: Vec<String> = conn.query("SELECT VERSION()")
@@ -147,9 +151,11 @@ pub async fn get_db_info(State(state): State<AppState>) -> Result<Json<serde_jso
 
 /// Handle device heartbeat with mission-critical write-through caching
 pub async fn handle_heartbeat(
+    headers: HeaderMap,
     State(state): State<AppState>,
     Query(params): Query<HeartbeatQuery>
 ) -> Result<Json<serde_json::Value>, StatusCode> {
+    log::info!("eddie: headers{:?}", headers);
     // Mission-critical mode: write to both MySQL and Ignite
     Err(StatusCode::INTERNAL_SERVER_ERROR)
     // match handle_heartbeat_mission_critical(state, params).await {
