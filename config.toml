@@ -1,0 +1,47 @@
+[database]
+# Database connection settings
+host = "localhost"
+port = 3306
+user = "root"
+password = "password"
+database = "mysql"
+
+[database.pool]
+# Connection pool settings
+min_connections = 1
+max_connections = 10
+connection_timeout = 30  # seconds
+idle_timeout = 600       # seconds
+
+[server]
+# HTTP server settings
+host = "0.0.0.0"
+port = 3000
+request_timeout = 30     # seconds
+enable_cors = true
+max_body_size = 1048576  # 1MB in bytes
+
+[logging]
+# Logging configuration
+level = "info"           # trace, debug, info, warn, error
+file_enabled = true
+file_path = "logs/app.log"
+console_enabled = true
+syslog_enabled = true
+max_file_size = 10       # MB
+max_files = 5
+
+[app]
+# Application settings
+name = "mysql_connection_demo"
+version = "0.1.0"
+environment = "development"  # development, staging, production
+debug = false
+
+[app.heartbeat]
+# Heartbeat device settings
+default_interval = 300   # seconds (5 minutes)
+max_interval = 3600      # seconds (1 hour)
+auto_cleanup = true
+cleanup_interval = 24    # hours
+max_record_age = 30      # days

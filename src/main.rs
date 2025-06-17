@@ -144,8 +144,7 @@ async fn main() -> Result<()> {
     let config = match config::Config::load() {
         Ok(cfg) => {
             log_both!(syslog_writer, "info", "Configuration loaded successfully");
-            log_both!(syslog_writer, "debug", "Environment: {}", cfg.app.environment);
-            log_both!(syslog_writer, "debug", "Debug mode: {}", cfg.app.debug);
+            log_both!(syslog_writer, "info", "Config: {:?}", cfg);
             cfg
         },
         Err(e) => {
@@ -158,6 +157,7 @@ async fn main() -> Result<()> {
     // Start HTTP server
     log_both!(syslog_writer, "info", "🚀 Starting HTTP server...");
     start_http_server(syslog_writer, &config).await?;
+    Ok(())
 }
 
 async fn start_http_server(mut syslog_writer: Option<SyslogWriter>, config: &config::Config) -> Result<()> {

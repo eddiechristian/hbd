@@ -209,8 +209,13 @@ impl Config {
         let mut config = Self::default();
         
         // Load from config file if it exists
-        if let Ok(file_config) = Self::load_from_file("config.toml") {
-            config = file_config;
+
+        match Self::load_from_file("config.toml") {
+            Ok(file_config) => config = file_config,
+            Err(e) =>{
+              print!("\nERROR: loading config.toml err{}\n",e);
+              std::process::exit(1);
+            }
         }
         
         // Override with environment variables
@@ -389,7 +394,7 @@ impl Config {
     }
     
     /// Create a MySQL connection pool
-    pub fn ed_create_connection_pool(&self) -> anyhow::Result<mysql::Pool> {
+    pub fn create_connection_pool(&self) -> anyhow::Result<mysql::Pool> {
         let opts = self.mysql_opts();
         let pool = mysql::Pool::new(opts)
             .context("Failed to create MySQL connection pool")?;
