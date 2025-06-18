@@ -167,6 +167,23 @@ pub async fn handle_heartbeat(
         state.clone(),
         params,
         &state.cache,
+        false
+    ).await
+}
+
+pub async fn handle_heartbeat_uninitialized(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Query(params): Query<HeartbeatQuery>
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    log::info!("eddie: headers{:?}", headers);
+    
+    // Use the new cache-enabled heartbeat handler
+    crate::app_with_mysql_and_cache::handle_heartbeat_with_cache(
+        state.clone(),
+        params,
+        &state.cache,
+        true
     ).await
 }
 
@@ -267,6 +284,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/health", get(health))
         .route("/api/db-info", get(get_db_info))
         .route("/hbd", get(handle_heartbeat))
+        .route("/hbd/uninitialized", get(handle_heartbeat_uninitialized))
         // .route("/api/heartbeat/procedure", post(call_stored_procedure))
         .layer(CorsLayer::permissive())
         .with_state(state)
