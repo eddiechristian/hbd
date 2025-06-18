@@ -12,6 +12,7 @@ use clap::{Arg, Command};
 mod server;
 mod config;
 mod app_with_mysql_and_cache;
+mod cache;
 
 // Custom syslog writer
 struct SyslogWriter {

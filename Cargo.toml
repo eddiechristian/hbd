@@ -21,3 +21,6 @@ tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
 toml = "0.8"
 clap = { version = "4.0", features = ["derive"] }
+lockfreehashmap = "0.1"
+crossbeam = "0.8.4"
+crossbeam-utils = "0.8.21"

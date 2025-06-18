@@ -48,13 +48,13 @@ pub struct HeartbeatQuery {
     #[serde(rename = "ID")]
     pub id: u32,
     #[serde(rename = "MAC")]
-    pub mac: Option<String>,
+    pub mac: String,
     #[serde(rename = "IP")]
-    pub ip: Option<String>,
-    #[serde(rename = "ts")]
-    pub timestamp: Option<i64>,
-    #[serde(rename = "use_procedure")]
-    pub use_procedure: Option<bool>,
+    pub ip: String,
+    #[serde(rename = "LP")]
+    pub long_poll: Option<String>,
+    pub timestamp: Option<u64>,
+    pub pip: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -89,6 +89,7 @@ pub struct DeviceInfo {
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: mysql::Pool,
+    pub cache: crate::cache::HeartbeatCache<'static>,
 }
 
 impl AppState {
@@ -99,10 +100,14 @@ impl AppState {
         let db_pool = config.create_connection_pool()
             .context("Failed to create database connection pool")?;
 
-        log::info!("Application state initialized with connection pool");
+        // Initialize the cache
+        let cache = crate::cache::HeartbeatCache::new();
+
+        log::info!("Application state initialized with connection pool and cache");
 
         Ok(AppState { 
             db_pool,
+            cache,
         })
     }
 
@@ -156,15 +161,13 @@ pub async fn handle_heartbeat(
     Query(params): Query<HeartbeatQuery>
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     log::info!("eddie: headers{:?}", headers);
-    // Mission-critical mode: write to both MySQL and Ignite
-    Err(StatusCode::INTERNAL_SERVER_ERROR)
-    // match handle_heartbeat_mission_critical(state, params).await {
-    //     Ok(result) => Ok(result),
-    //     Err(e) => {
-    //         log::error!("Mission-critical heartbeat failed: {:?}", e);
-    //         Err(e)
-    //     }
-    // }
+    
+    // Use the new cache-enabled heartbeat handler
+    crate::app_with_mysql_and_cache::handle_heartbeat_with_cache(
+        state.clone(),
+        params,
+        &state.cache,
+    ).await
 }
 
 /// Direct stored procedure endpoint for testing
