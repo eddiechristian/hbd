@@ -7,6 +7,7 @@ use crossbeam_utils::atomic::AtomicCell;
 #[derive(Debug, Clone)]
 pub struct HeartbeatCache<'a> {
     pub devices: Arc<LockFreeHashMap<'a, String, CachedDevice>>,
+    pub hb_waiting: Arc<LockFreeHashMap<'a, String, CachedDevice>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -23,6 +24,7 @@ impl<'a> HeartbeatCache<'a> {
     pub fn new() -> Self {
         Self {
             devices: Arc::new(LockFreeHashMap::new()),
+            hb_waiting: Arc::new(LockFreeHashMap::new()),
         }
     }
 

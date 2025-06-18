@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{ConnectInfo, Path, Query, State},
     http::{HeaderMap,StatusCode},
     response::Json,
     routing::{get, post},
@@ -11,6 +11,7 @@ use tower_http::cors::CorsLayer;
 use std::future::Future;
 use std::pin::Pin;
 use anyhow::{Result, Context};
+use std::net::SocketAddr;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -156,6 +157,7 @@ pub async fn get_db_info(
 
 /// Handle device heartbeat with mission-critical write-through caching
 pub async fn handle_heartbeat(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
     State(state): State<AppState>,
     Query(params): Query<HeartbeatQuery>

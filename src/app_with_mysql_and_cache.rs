@@ -35,15 +35,13 @@ fn get_status_code() -> Result<Json<serde_json::Value>,StatusCode>{
     
 }
 /// is mac in cache or db
-fn get_authorized(cache: &HeartbeatCache, mac: &str) -> AuthorizedResult{
+fn get_authorized(state: &AppState, cache: &HeartbeatCache, mac: &str) -> Result<AuthorizedResult, StatusCode>{
     match cache.get_device(mac){
         None => {
-            let mut authorized:bool = false;
-            let mut squelched:bool = false;
             //call db to get auth and squelched.
-            AuthorizedResult { authorized: authorized, squelched: squelched }
+            call_is_device_active(state, mac)
         },
-        Some(_)=>  AuthorizedResult { authorized: true, squelched: false }
+        Some(_)=>  Ok(AuthorizedResult { authorized: true, squelched: false })
     }
 
 }
@@ -56,6 +54,46 @@ fn get_last_heartbeat_write(cache: &HeartbeatCache ,mac: &str) -> Option<DateTim
 
 } 
 
+pub fn call_is_device_active(state: &AppState, mac: &str) -> Result<AuthorizedResult, StatusCode>  {
+    // Call the stored procedure
+    match state.get_connection() {
+        Ok(mut conn) => {
+            let result: Result<Vec<mysql::Row>, mysql::Error> = conn.exec(
+                "CALL is_device_active(?, @msg)",
+                (mac,)
+            );
+            
+            // Handle the @msg output parameter properly
+            let _message: Result<Option<String>, mysql::Error> = conn.query_first("SELECT @msg");
+
+            match result {
+                Ok(mut rows) => {
+                    if let Some(row) = rows.pop() {
+                        let (_account_id, squelch): (Option<i32>, i32) = mysql::from_row(row);
+                        Ok(AuthorizedResult {
+                            authorized: true,
+                            squelched: squelch != 0,
+                        })
+                    } else {
+                        Ok(AuthorizedResult {
+                            authorized: false,
+                            squelched: true,
+                        })
+                    }
+                },
+                Err(_) => {
+                    Ok(AuthorizedResult {
+                        authorized: false,
+                        squelched: true,
+                    })
+                }
+            }
+        },
+        Err(_) => {
+            Err(StatusCode::SERVICE_UNAVAILABLE)
+        }
+    }
+}
 /// Handle heartbeat with MySQL and cache integration
 /// This function can be called from handle_heartbeat in server.rs
 pub async fn handle_heartbeat_with_cache(
@@ -70,7 +108,7 @@ pub async fn handle_heartbeat_with_cache(
     let timestamp = params.timestamp;
     let LP = params.long_poll;
     let pip = get_pip();
-    let authorized= get_authorized(cache, &mac_address);
+    let authorized= get_authorized(&state, cache, &mac_address)?;
     let last_heartbeat_write =get_last_heartbeat_write(cache, &mac_address);
     log::info!("Processing heartbeat for device ID: {}, MAC: {:?}, IP: {:?}", 
     device_id, mac_address, ip_address);
