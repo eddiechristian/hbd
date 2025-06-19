@@ -1,0 +1,42 @@
+# log4rs configuration for MySQL connection demo
+refresh_rate: 30 seconds
+
+appenders:
+  # Console appender with colors
+  console:
+    kind: console
+    encoder:
+      kind: pattern
+      pattern: "{d(%Y-%m-%d %H:%M:%S)} [{h({l})}] {M} - {m}{n}"
+    target: stdout
+    filters:
+      - kind: threshold
+        level: trace
+
+  # File appender (for persistent logs)
+  file:
+    kind: file
+    path: "logs/mysql_connection_demo.log"
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S%.3f)} [{l}] [{T}] {M} - {m}{n}"
+    append: true
+
+root:
+  level: info
+  appenders:
+    - file
+
+loggers:
+  mysql_connection_demo:
+    level: debug
+    appenders:
+      - file
+    additive: false
+
+  # Reduce verbosity of external crates
+  mysql:
+    level: warn
+  tokio:
+    level: warn
+  rustls:
+    level: warn
