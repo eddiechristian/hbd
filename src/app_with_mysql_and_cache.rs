@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
 use crate::server::{AppState, HeartbeatQuery, HeartbeatDevice};
-use crate::cache::{HeartbeatCache, CachedDevice};
+use crate::cache::{HeartbeatCache, HeartbeatCacheInfo};
 
 struct AuthorizedResult{
     authorized: bool,
@@ -35,8 +35,8 @@ fn get_status_code() -> Result<Json<serde_json::Value>,StatusCode>{
     
 }
 /// is mac in cache or db
-fn get_authorized(state: &AppState, cache: &HeartbeatCache, mac: &str) -> Result<AuthorizedResult, StatusCode>{
-    match cache.get_device(mac){
+fn get_authorized(state: &AppState, heartbeat_cache: &HeartbeatCache, mac: &str) -> Result<AuthorizedResult, StatusCode>{
+    match heartbeat_cache.get_device(mac){
         None => {
             //call db to get auth and squelched.
             call_is_device_active(state, mac)
@@ -46,8 +46,8 @@ fn get_authorized(state: &AppState, cache: &HeartbeatCache, mac: &str) -> Result
 
 }
 
-fn get_last_heartbeat_write(cache: &HeartbeatCache ,mac: &str) -> Option<DateTime<Utc>>{
-    match cache.get_device(mac){
+fn get_last_heartbeat_write(heartbeat_cache: &HeartbeatCache ,mac: &str) -> Option<DateTime<Utc>>{
+    match heartbeat_cache.get_device(mac){
         None => None,
         Some(cached_device)=> cached_device.last_heartbeat_write
     }
@@ -99,7 +99,7 @@ pub fn call_is_device_active(state: &AppState, mac: &str) -> Result<AuthorizedRe
 pub async fn handle_heartbeat_with_cache(
     state: AppState,
     params: HeartbeatQuery,
-    cache: &HeartbeatCache<'_>,
+    heartbeat_cache: &HeartbeatCache<'_>,
     uninitialized: bool,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     let device_id = params.id;
@@ -108,13 +108,13 @@ pub async fn handle_heartbeat_with_cache(
     let timestamp = params.timestamp;
     let LP = params.long_poll;
     let pip = get_pip();
-    let authorized= get_authorized(&state, cache, &mac_address)?;
-    let last_heartbeat_write =get_last_heartbeat_write(cache, &mac_address);
+    let authorized= get_authorized(&state, heartbeat_cache, &mac_address)?;
+    let last_heartbeat_write =get_last_heartbeat_write(heartbeat_cache, &mac_address);
     log::info!("Processing heartbeat for device ID: {}, MAC: {:?}, IP: {:?}", 
     device_id, mac_address, ip_address);
 
     //if not authorized
-      // remove from hb_waiting cache, cache
+      // remove from hb_waiting heartbeat_cache, cache
       // redirect to 
 
     //if authorized but squelched 
@@ -133,7 +133,7 @@ pub async fn handle_heartbeat_with_cache(
       // update db(sp : update_last_hb) if cache_entry_last_heartbeat > entry_last_db_write
 
     // update cache either way
-    let device_update = CachedDevice{
+    let device_update = HeartbeatCacheInfo{
         id: device_id,
         mac_address: mac_address,
         global_ip_address: pip,
@@ -141,7 +141,7 @@ pub async fn handle_heartbeat_with_cache(
         last_heartbeat: Utc::now(),
         last_heartbeat_write: last_heartbeat_write,
     };
-    cache.update_device(device_update);
+    heartbeat_cache.update_device(device_update);
    
     get_status_code()
       

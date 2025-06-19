@@ -90,7 +90,7 @@ pub struct DeviceInfo {
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: mysql::Pool,
-    pub cache: crate::cache::HeartbeatCache<'static>,
+    pub heart_beat_cache: crate::cache::HeartbeatCache<'static>,
 }
 
 impl AppState {
@@ -102,13 +102,13 @@ impl AppState {
             .context("Failed to create database connection pool")?;
 
         // Initialize the cache
-        let cache = crate::cache::HeartbeatCache::new();
+        let heart_beat_cache = crate::cache::HeartbeatCache::new();
 
         log::info!("Application state initialized with connection pool and cache");
 
         Ok(AppState { 
             db_pool,
-            cache,
+            heart_beat_cache,
         })
     }
 
@@ -168,7 +168,7 @@ pub async fn handle_heartbeat(
     crate::app_with_mysql_and_cache::handle_heartbeat_with_cache(
         state.clone(),
         params,
-        &state.cache,
+        &state.heart_beat_cache,
         false
     ).await
 }
@@ -184,7 +184,7 @@ pub async fn handle_heartbeat_uninitialized(
     crate::app_with_mysql_and_cache::handle_heartbeat_with_cache(
         state.clone(),
         params,
-        &state.cache,
+        &state.heart_beat_cache,
         true
     ).await
 }
