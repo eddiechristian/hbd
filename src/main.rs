@@ -185,8 +185,11 @@ async fn start_http_server(mut syslog_writer: Option<SyslogWriter>, config: &con
     log_both!(syslog_writer, "info", "  GET  /hbd              - Device heartbeat endpoint (supports ?ID=123&MAC=000&IP=192.168.1.1&ts=1749862684)");
     log_both!(syslog_writer, "info", "🔥 Press Ctrl+C to stop the server");
     
-    // Start the server
-    axum::serve(listener, app).await
+    // Start the server with ConnectInfo support
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>()
+    ).await
         .map_err(|e| anyhow::Error::msg(format!("Server error: {}", e)))?;
     
     Ok(())

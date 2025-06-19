@@ -108,11 +108,12 @@ pub async fn handle_heartbeat_with_cache(
     let timestamp = params.timestamp;
     let LP = params.long_poll;
     let pip = get_pip();
-    let authorized= get_authorized(&state, heartbeat_cache, &mac_address)?;
-    let last_heartbeat_write =get_last_heartbeat_write(heartbeat_cache, &mac_address);
+    // let authorized= get_authorized(&state, heartbeat_cache, &mac_address)?;
+    // let last_heartbeat_write =get_last_heartbeat_write(heartbeat_cache, &mac_address);
     log::info!("Processing heartbeat for device ID: {}, MAC: {:?}, IP: {:?}", 
     device_id, mac_address, ip_address);
 
+    return Err(StatusCode::OK);
     //if not authorized
       // remove from hb_waiting heartbeat_cache, cache
       // redirect to 
@@ -133,16 +134,16 @@ pub async fn handle_heartbeat_with_cache(
       // update db(sp : update_last_hb) if cache_entry_last_heartbeat > entry_last_db_write
 
     // update cache either way
-    let device_update = HeartbeatCacheInfo{
-        id: device_id,
-        mac_address: mac_address,
-        global_ip_address: pip,
-        local_ip_address: ip_address,
-        last_heartbeat: Utc::now(),
-        last_heartbeat_write: last_heartbeat_write,
-    };
-    heartbeat_cache.update_device(device_update);
+    // let device_update = HeartbeatCacheInfo{
+    //     id: device_id,
+    //     mac_address: mac_address,
+    //     global_ip_address: pip,
+    //     local_ip_address: ip_address,
+    //     last_heartbeat: Utc::now(),
+    //     last_heartbeat_write: last_heartbeat_write,
+    // };
+    // heartbeat_cache.update_device(device_update);
    
-    get_status_code()
+    // get_status_code()
       
 }

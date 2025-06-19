@@ -6,3 +6,7 @@ brew services start mysql
 mysqladmin ping -h localhost -P 3306 --user=root
 
 mysql -h localhost -P 3306 -u root -e "SELECT 1;"
+
+
+to list processe running on port
+lsof -i :3000

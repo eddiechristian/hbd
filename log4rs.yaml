@@ -24,6 +24,7 @@ appenders:
 root:
   level: info
   appenders:
+    - console
     - file
 
 loggers:

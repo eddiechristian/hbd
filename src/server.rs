@@ -163,6 +163,7 @@ pub async fn handle_heartbeat(
     Query(params): Query<HeartbeatQuery>
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     log::info!("eddie: headers{:?}", headers);
+    log::info!("eddie: addr{:?}", addr);
     
     // Use the new cache-enabled heartbeat handler
     crate::app_with_mysql_and_cache::handle_heartbeat_with_cache(
